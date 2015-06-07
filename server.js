@@ -6,7 +6,7 @@ var express = require('express'),
         extensions: ['htm', 'html'],
         maxAge: '1d',
         redirect: false,
-        setHeaders: function (res, path, stat) {
+        setHeaders: function (res) {
             res.set('x-timestamp', Date.now());
         }
     };

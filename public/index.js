@@ -22,23 +22,28 @@
                 return $.when();
             },
             
-            setDefaultData = function(){
+            setDefaultData = function () {
                 return $.when( $.getJSON('data/dataMap.json') )
                         .then( $.proxy(function (data) {
                     this.defaultDataMapCluster = data;
                 }, APP));
             },
 
-            setMarkersData = function(){
+            setMarkersData = function () {
                 return $.when( $.getJSON('data/dataMarkers.json') )
                         .then( $.proxy(function (data) {
                     this.defaultDataMarkers = data; 
                 }, APP));
             },
+            
+            // trigger data after loading data
+            finalizeLoadData = function () {
+                $(APP.companyMapCluster).trigger('load_map');
+            },
                         
             // load dependencies to app
             loadDependencies = function () {
-                setLisbs().then(setDefaultData).then(setMarkersData);
+                setLisbs().then(setDefaultData).then(setMarkersData).then(finalizeLoadData);
             },
             
             createContentInfo = function (address) {
@@ -47,12 +52,12 @@
                 return html;
             },
             
-            setMarkers = function (dataMap, map, markers, infoWindow) {
+            setMarkers = function (map, markers, infoWindow) {
                 var libs = APP.MapClusterFactory.getLibs(),
                     bounds = new libs.map.LatLngBounds(),
                     defaultData = APP.defaultDataMapCluster.markerStyle;
 
-                $.each(dataMap, function (data) {
+                $.each(APP.defaultDataMarkers, function (index, data) {
                     var htmlInfo = APP.MapClusterFactory.createContentInfo(data.address),
                         latLng = new libs.map.LatLng(data.lat, data.lng),
                         marker = new libs.map.Marker({
@@ -66,10 +71,9 @@
                         infoWindow.setContent(htmlInfo);
                         infoWindow.open(map, marker);
                     });
-
                     // center markers into map view
                     bounds.extend(latLng);
-                }, this);
+                });
 
                 return bounds;
             },
@@ -82,15 +86,20 @@
                 this.markers = [];
             };
             
+            
+            // tiene que estar cargado los datos recuperados por Ajax,
+            // hay que lanzar un evento de finalizacion de carga
             createMapCluster.prototype.loadMapCluster = function () {
                 this.clearMapCluster();
+                this.createInfoWindow();
                 this.crateEmptyMap();
                 this.crateMapCluster();
             };
             
+            
             // clear map, infowindows and marker maps
-            createMapCluster.prototype.clearMapCluster = function (mapCluster) {
-                $.each(this.markers, function () {
+            createMapCluster.prototype.clearMapCluster = function () {
+                $.each(this.markers, function (index, mk) {
                     mk.setMap(null);
                 });
                 this.markers.length = 0;
@@ -98,11 +107,23 @@
                 !$.isEmptyObject(this.cluster) && this.cluster.clearMarkers();
             };
             
+            createMapCluster.prototype.createInfoWindow = function (options) {
+                var libs = APP.MapClusterFactory.getLibs(),
+                    defaultData = APP.defaultDataMapCluster,
+                    optionsInfoWindow = {
+                        maxWidth: defaultData.maxWidth
+                    };
+
+                $.extend(optionsInfoWindow, options);
+                this.infoWindow = new libs.map.InfoWindow(optionsInfoWindow);
+            };
+            
             // create empty map into View
             createMapCluster.prototype.crateEmptyMap = function (options) {
                 var libs = APP.MapClusterFactory.getLibs(),
                     optionsMap = {
-                        center: new libs.map.LatLng(APP.defaultDataMapCluster.center),
+                        center: new libs.map.LatLng(APP.defaultDataMapCluster.center.lat,
+                                                    APP.defaultDataMapCluster.center.lng),
                         scrollwheel: APP.defaultDataMapCluster.isScroll,
                         mapTypeId: libs.map.MapTypeId.ROADMAP
                     };
@@ -113,8 +134,7 @@
             
             createMapCluster.prototype.crateMapCluster = function (options) {
                 var libs = APP.MapClusterFactory.getLibs(),
-                    bounds = APP.MapClusterFactory.setMarkers(  APP.defaultDataMarkers,
-                                                                this.map,
+                    bounds = APP.MapClusterFactory.setMarkers(  this.map,
                                                                 this.markers,
                                                                 this.infoWindow),
                     defaultData = APP.defaultDataMapCluster,
@@ -127,12 +147,16 @@
                 $.extend(optionsCluster, options);
                 this.map.fitBounds(bounds);
                 this.cluster = new libs.Cluster(this.map, this.markers, optionsCluster);
-                this.map.setZoom(defaultData.zoom);
             };
             
             
             createMapCluster.prototype.toggleMap = function () {
                 this.view.toggle();
+            };
+            
+            createMapCluster.prototype.isReady = function () {
+                return  !$.isEmptyObject(this.cluster) &&
+                        APP.defaultDataMarkers.length > 0;
             };
             
             createMapCluster.prototype.resizeMap = function () {
@@ -141,6 +165,7 @@
 
                 libs.map.event.trigger(this.map, 'resize');
                 this.map.setCenter(center);
+                this.map.setZoom(APP.defaultDataMapCluster.zoom);
             };
             
             return {
@@ -153,16 +178,18 @@
         })(),
         
         domReady: function () {
-            this.MapClusterFactory.loadDependencies();
             this.companyMapCluster = new this.MapClusterFactory.createMapCluster('#map-custer');
+            $(this.companyMapCluster).on('load_map', this.companyMapCluster.loadMapCluster);
+            // load deferred dependencies and finally load the MapCluster
+            this.MapClusterFactory.loadDependencies();
         },
         
-        documentReady: function () {
-            this.companyMapCluster.loadMapCluster();
-            
+        documentReady: function () {            
             $('.js-show-map-cluster').on('click', $.proxy(function () {
-                this.companyMapCluster.toggleMap();
-                this.companyMapCluster.resizeMap();
+                if (this.companyMapCluster.isReady()) {
+                    this.companyMapCluster.toggleMap();
+                    this.companyMapCluster.resizeMap();
+                }
             }, this));
         }
     };
