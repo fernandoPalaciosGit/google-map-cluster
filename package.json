@@ -1,6 +1,10 @@
 {
-  "name": "map-cluster",
+  "name": "google-map-cluster",
   "version": "1.0.0",
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/fernandoPalaciosGit/google-map-cluster.git"
+  },
   "description": "google map V3, example with map cluster",
   "main": "server.js",
   "scripts": {
