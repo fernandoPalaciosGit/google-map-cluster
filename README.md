@@ -2,6 +2,8 @@
 This is an Example Of Google Map V3, for *hotel cluster brands* 
 finder extracted from search [engine hotel Edreams][6].
 
+![Image of map cluster Edream´s hotels](http://cruzalosdedos.es/media/map-cluster-edream-hotels.png)
+
 ### Before instalation, Machines
 - [NodeJS][1]
 - [Express Package][2]
