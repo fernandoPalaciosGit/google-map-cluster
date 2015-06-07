@@ -1,0 +1,12 @@
+{
+  "name": "map-cluster",
+  "version": "1.0.0",
+  "description": "google map V3, example with map cluster",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Fernando Palacios Landi",
+  "license": "ISC"
+}
