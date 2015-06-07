@@ -1,0 +1,19 @@
+{
+    "center": {"lat": 39.470239, "lng": -0.376805},
+    "isScroll": false,
+    "zoom": 12,
+    "gridSize": 50,
+    "maxWidth": 500,
+    "clusterStyle": [{
+        "url": "http://www.edreams.com/images/shared/new/iconMapCluster.png",
+        "width": 40,
+        "height": 40,
+        "textColor": "#fff",
+        "textSize": 12,
+        "anchor": [0, 0]
+    }],
+    "markerStyle": {
+        "imgUrl": "http://www.edreams.com/images/shared/new/iconMapMedium.png",
+        "imgUrlRecommended": "http://www.edreams.com/images/shared/new/iconMapBig.png"
+    }
+}
